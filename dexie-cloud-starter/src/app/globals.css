@@ -1,0 +1,212 @@
+:root {
+  --background: #f0f2f5;
+  --foreground: #171717;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: var(--font-roboto);
+  background-color: var(--background);
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1 {
+  display: block;
+  font-size: 2em;
+  margin-block-start: 0.67em;
+  margin-block-end: 0.67em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  font-weight: bold;
+  unicode-bidi: isolate;
+}
+
+ul,
+ol {
+  padding-left: 20px;
+  margin-left: 0;
+}
+
+li {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.tiptap {
+  :first-child {
+    margin-top: 0;
+  }
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror {
+  min-height: 100%;
+  width: 100%;
+}
+
+.ProseMirror-focused {
+  outline: none;
+  box-shadow: none;
+}
+
+.ProseMirror .collaboration-cursor__caret {
+  border-right: 1px solid black;
+  border-left: 1px solid black;
+  pointer-events: none;
+  margin-left: -1px;
+  margin-right: -1px;
+  position: relative;
+  overflow-wrap: break-word;
+}
+
+.ProseMirror .collaboration-cursor__label {
+  border-radius: 4px;
+  border-top-left-radius: 0;
+  color: black;
+  font-size: 12px;
+  font-weight: 600;
+  left: -1px;
+  line-height: 1;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-left: 6px;
+  padding-right: 6px;
+  position: absolute;
+  top: -1.4em;
+  user-select: none;
+  white-space: nowrap;
+  opacity: 0.8;
+  text-transform: capitalize;
+}
+
+.editor-content p {
+  min-height: 1em;
+}
+
+.editor-content p:empty::before {
+  content: '\00a0';
+}
+
+blockquote {
+  border-left: 3px solid gray;
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+}
+
+pre {
+  background: #f5f5f5;
+  border-radius: 0.5rem;
+  font-family: 'JetBrainsMono', monospace;
+  padding: 0.75rem 1rem;
+}
+
+pre code {
+  background: none;
+  color: inherit;
+  font-size: 0.8rem;
+  padding: 0;
+}
+
+pre .hljs-comment,
+pre .hljs-quote {
+  color: #616161;
+}
+
+pre .hljs-variable,
+pre .hljs-template-variable,
+pre .hljs-attribute,
+pre .hljs-tag,
+pre .hljs-name,
+pre .hljs-regexp,
+pre .hljs-link,
+pre .hljs-name,
+pre .hljs-selector-id,
+pre .hljs-selector-class {
+  color: #e88c8c;
+}
+
+pre .hljs-number,
+pre .hljs-meta,
+pre .hljs-built_in,
+pre .hljs-builtin-name,
+pre .hljs-literal,
+pre .hljs-type,
+pre .hljs-params {
+  color: #e07b53;
+}
+
+pre .hljs-string,
+pre .hljs-symbol,
+pre .hljs-bullet {
+  color: #4caf50;
+}
+
+pre .hljs-title,
+pre .hljs-section {
+  color: #e6c700;
+}
+
+pre .hljs-keyword,
+pre .hljs-selector-tag {
+  color: #1f7fff;
+}
+
+pre .hljs-emphasis {
+  font-style: italic;
+}
+
+pre .hljs-strong {
+  font-weight: 700;
+}
+
+.my-masonry-grid {
+  display: flex;
+  margin-left: -30px;
+  width: auto;
+}
+
+.my-masonry-grid_column {
+  padding-left: 30px;
+  background-clip: padding-box;
+}
+
+.my-masonry-grid_column > div {
+  margin-bottom: 30px;
+}
+
+.MuiCardContent-root:last-child {
+  padding-bottom: 16px !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
