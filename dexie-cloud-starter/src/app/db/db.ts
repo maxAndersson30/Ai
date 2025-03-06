@@ -43,7 +43,7 @@ export interface ISpaceList extends ISpace {
   cards: ICard[]
 }
 
-export interface IImage {
+export interface IFile {
   id: string
   createdAt: string
   cardId?: string
@@ -55,7 +55,7 @@ export interface IImage {
 export class DexieStarter extends Dexie {
   cards!: Table<ICard, string>
   spaces!: Table<ISpace, string>
-  image!: Table<IImage, string>
+  files!: Table<IFile, string>
 
   constructor() {
     super('DexieStarter', {
@@ -74,7 +74,7 @@ export class DexieStarter extends Dexie {
         id,
         title`,
       setting_local: '++id, key',
-      image: `id, cardId, realmId`,
+      files: `id, cardId, realmId`,
     })
 
     // A trigger to set the docHtml string attribute from Y.Doc content
@@ -139,13 +139,13 @@ export class DexieStarter extends Dexie {
   }
 }
 
-export async function addImageToCard(cardId: string, file: File) {
+export async function addFileToCard(cardId: string, file: File) {
   const card = await db.cards.where('id').equals(cardId).first()
   if (!card) {
-    console.error('Card not found for image')
+    console.error('Card not found for file')
     return
   }
-  const newImage: IImage = {
+  const newFile: IFile = {
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     cardId,
@@ -153,32 +153,24 @@ export async function addImageToCard(cardId: string, file: File) {
     fileType: file.type,
     realmId: card?.realmId,
   }
-  console.log('DB Image Table:', db.image)
-
-  await db.image.add(newImage)
-  return newImage
+  await db.files.add(newFile) // Använd db.files.add()
+  return newFile
 }
 
-export async function getImagesByCardId(cardId: string) {
-  console.log(`Fetching images for cardId: ${cardId}`)
+export async function addImageToCard(cardId: string, file: File) {
+  return addFileToCard(cardId, file)
+}
 
-  const images = await db.image.where('cardId').equals(cardId).toArray()
-
-  console.log('Retrieved Images:', images)
-
-  if (images.length === 0) {
-    console.warn(`No images cardId: ${cardId}`)
-  }
-
+export async function getFilesByCardId(cardId: string) {
+  const files = await db.files.where('cardId').equals(cardId).toArray()
   return Promise.all(
-    images.map(async (image) => {
-      const fileUrl = await blobToBase64(image.file)
-      console.log(`Image ${image.id} URL:`, fileUrl)
+    files.map(async (file) => {
+      const fileUrl = await blobToBase64(file.file)
       return {
-        id: image.id,
-        createdAt: image.createdAt,
-        cardId: image.cardId,
-        fileType: image.fileType,
+        id: file.id,
+        createdAt: file.createdAt,
+        cardId: file.cardId,
+        fileType: file.fileType,
         fileUrl: fileUrl,
       }
     }),

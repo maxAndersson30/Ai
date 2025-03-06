@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { CardContent, Dialog, DialogContent, IconButton } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { ICard, getImagesByCardId, IImage } from '../db/db'
+import { ICard, getFilesByCardId, IFile } from '../db/db'
 import Avatars from './Avatars'
 import { Box } from '@mui/system'
 import Image from 'next/image'
@@ -56,9 +56,9 @@ const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
   const contentRef = useRef<HTMLDivElement>(null)
   const [isScaled, setIsScaled] = useState(false)
   const [scaleFactor, setScaleFactor] = useState(1)
-  const [images, setImages] = useState<IImage[]>([])
+  const [files, setFiles] = useState<IFile[]>([])
   const [open, setOpen] = useState(false)
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null)
 
   const handleClick = () => {
     router.push(`?edit=${item.id}`)
@@ -79,36 +79,35 @@ const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
   }, [item.docHtml])
 
   useEffect(() => {
-    async function fetchImages() {
+    async function fetchFiles() {
       if (item.id) {
-        const imageList = await getImagesByCardId(item.id)
+        const fileList = await getFilesByCardId(item.id)
 
-        const imagesWithFile = await Promise.all(
-          imageList.map(async (img) => {
-            const response = await fetch(img.fileUrl)
+        const filesWithFile = await Promise.all(
+          fileList.map(async (file) => {
+            const response = await fetch(file.fileUrl)
             const blob = await response.blob()
-            const file = new File([blob], `image-${img.id}`, {
-              type: img.fileType,
+            const newFile = new File([blob], `file-${file.id}`, {
+              type: file.fileType,
             })
 
-            return { ...img, file }
+            return { ...file, file: newFile }
           }),
         )
 
-        setImages(imagesWithFile)
+        setFiles(filesWithFile)
       }
     }
-    fetchImages()
+    fetchFiles()
   }, [item.id])
 
-  const handleImageClick = (imageSrc: string) => {
-    setSelectedImage(imageSrc)
+  const handleFileClick = (fileUrl: string) => {
+    setSelectedFileUrl(fileUrl)
     setOpen(true)
   }
 
   const handleClose = () => {
     setOpen(false)
-    setSelectedImage(null)
   }
 
   return (
@@ -134,27 +133,39 @@ const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
               },
             }}
           >
-            {images.length > 0 ? (
-              images.map((img, index) => {
-                const imageSrc = URL.createObjectURL(img.file)
-                return (
-                  <Image
-                    key={index}
-                    src={imageSrc}
-                    alt={`Uploaded ${index}`}
-                    layout="responsive"
-                    width={500}
-                    height={300}
-                    style={{ maxWidth: '100%' }}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleImageClick(imageSrc)
-                    }}
-                  />
-                )
+            {files.length > 0 ? (
+              files.map((file, index) => {
+                const fileSrc = URL.createObjectURL(file.file)
+                if (file.fileType.startsWith('image/')) {
+                  return (
+                    <Image
+                      key={index}
+                      src={fileSrc}
+                      alt={`Uploaded ${index}`}
+                      layout="responsive"
+                      width={500}
+                      height={300}
+                      style={{ maxWidth: '100%' }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleFileClick(fileSrc)
+                      }}
+                    />
+                  )
+                } else {
+                  return (
+                    <div
+                      key={index}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => handleFileClick(fileSrc)}
+                    >
+                      <p>File: {file.fileType}</p>
+                    </div>
+                  )
+                }
               })
             ) : (
-              <p>No images found.</p>
+              <p>No files found.</p>
             )}
             <div
               ref={contentRef}
@@ -193,16 +204,26 @@ const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
               background: 'linear-gradient(to top, white, transparent)',
             }}
           >
-            {selectedImage && (
-              <Image
-                src={selectedImage}
-                alt="Preview"
-                layout="responsive"
-                width={800}
-                height={500}
-                style={{ maxWidth: '100%', borderRadius: '6px' }}
-              />
-            )}
+            {selectedFileUrl &&
+              (files
+                .find(
+                  (file) => URL.createObjectURL(file.file) === selectedFileUrl,
+                )
+                ?.fileType.startsWith('image/') ? (
+                <Image
+                  src={selectedFileUrl}
+                  alt="Preview"
+                  layout="responsive"
+                  width={800}
+                  height={500}
+                  style={{ maxWidth: '100%', borderRadius: '6px' }}
+                />
+              ) : (
+                <iframe
+                  src={selectedFileUrl}
+                  style={{ width: '100%', height: '500px' }}
+                />
+              ))}
           </div>
         </DialogContent>
       </Dialog>

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { v4 as uuid } from 'uuid'
-import { createCard, addImageToCard, getImagesByCardId } from '../db/db'
+import { createCard, addImageToCard, getFilesByCardId } from '../db/db'
 import dayjs from 'dayjs'
 import Tiptap from '@/app/components/tiptap'
 import theme from '@/theme'
@@ -57,7 +57,7 @@ const NewCard = ({ spaceId }: NewCardProps) => {
       }
     }
 
-    const images = await getImagesByCardId(currentCardId)
+    const images = await getFilesByCardId(currentCardId)
     console.log('📸 Retrieved Images after upload:', images)
 
     setSearchKeyword('')
