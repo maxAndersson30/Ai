@@ -34,6 +34,9 @@ import {
   useLiveDataCards,
   useLiveDataSpaces,
   useLiveSpaceMembers,
+  IFile,
+  ICard,
+  getFilesByCardId,
 } from '../db/db'
 import Link from 'next/link'
 import { uniqWith } from 'lodash'
@@ -42,6 +45,7 @@ import dynamic from 'next/dynamic'
 import Avatars from './Avatars'
 import { Editor } from '@tiptap/react'
 import { DBRealmMember } from 'dexie-cloud-addon'
+import Image from 'next/image'
 
 const Tiptap = dynamic(
   () => import('../components/tiptap').then((mod) => mod.default),
@@ -60,6 +64,7 @@ const breakpointColumnsObj = {
 interface CardListProps {
   searchKeyword: string
   id?: string
+  item: ICard
 }
 
 const filter = createFilterOptions<AutoSelectMember>()
@@ -67,15 +72,18 @@ const filter = createFilterOptions<AutoSelectMember>()
 export default function CardList({
   searchKeyword,
   id: spaceId,
+  item,
 }: CardListProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
+  const [files, setFiles] = useState<IFile[]>([])
 
   const space = useLiveDataSpaces(spaceId)[0]
   const cards = useLiveDataCards(searchKeyword, spaceId)
 
   const [isModalEdit, setIsModalEdit] = useState<string | undefined>(undefined)
+  const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null)
 
   const [showShareDialogOpen, setShowShareDialogOpen] = useState(false)
   const [addFriendValue, setAddFriendValue] = useState<AutoSelectMember | null>(
@@ -93,6 +101,32 @@ export default function CardList({
     const modalParam = searchParams.get('edit')
     setIsModalEdit(modalParam || undefined)
   }, [searchParams])
+
+  useEffect(() => {
+    async function fetchFiles() {
+      if (item?.id) {
+        const fileList = await getFilesByCardId(item.id)
+
+        const filesWithFile = await Promise.all(
+          fileList.map(async (file) => {
+            const response = await fetch(file.fileUrl)
+            const blob = await response.blob()
+            const newFile = new File([blob], `file-${file.id}`, {
+              type: file.fileType,
+            })
+            return { ...file, file: newFile }
+          }),
+        )
+
+        setFiles(filesWithFile)
+      }
+    }
+    fetchFiles()
+  }, [item?.id])
+
+  const handleFileClick = (fileUrl: string) => {
+    setSelectedFileUrl(fileUrl)
+  }
 
   const editorRef = useRef<Editor | null>(null)
 
@@ -199,7 +233,7 @@ export default function CardList({
         <NewCard spaceId={spaceId} />
         {cards.map((item) => (
           <Box key={item.id} sx={{}}>
-            <ItemCard item={item} />
+            <ItemCard item={item} onFileClick={handleFileClick} />
             <Box
               sx={{
                 pt: 1.5,
@@ -250,6 +284,37 @@ export default function CardList({
               setCanPost={() => {}}
               style={{ minHeight: '100%', width: '100%' }}
             />
+            <Box>
+              <div
+                style={{
+                  width: '50rem',
+                  height: '50rem',
+                  background: 'linear-gradient(to top, white, transparent)',
+                }}
+              >
+                {files
+                  .find((file) => file.objectUrl === selectedFileUrl)
+                  ?.file.type.startsWith('image/') ? (
+                  <Image
+                    src={selectedFileUrl!}
+                    alt="Preview"
+                    layout="responsive"
+                    width={800}
+                    height={500}
+                    style={{ maxWidth: '100%', borderRadius: '6px' }}
+                  />
+                ) : (
+                  <iframe
+                    src={selectedFileUrl!}
+                    style={{
+                      width: '100%',
+                      height: '500px',
+                      borderRadius: '6px',
+                    }}
+                  />
+                )}
+              </div>
+            </Box>
           </Box>
           <Box
             sx={{

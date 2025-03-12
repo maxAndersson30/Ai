@@ -2,13 +2,12 @@
 
 import React, { useRef, useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { CardContent, Dialog, DialogContent, IconButton } from '@mui/material'
+import { CardContent } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { ICard, getFilesByCardId, IFile } from '../db/db'
 import Avatars from './Avatars'
 import { Box } from '@mui/system'
 import Image from 'next/image'
-import CloseIcon from '@mui/icons-material/Close'
 
 export const HEIGHT_THRESHOLD = 500 // px
 export const FIXED_HEIGHT = 200 // px
@@ -46,9 +45,10 @@ export const ContentWrapper = styled('div')<{ scaleFactor: number }>(
 
 interface ItemCardProps {
   item: ICard
+  onFileClick: (fileUrl: string) => void
 }
 
-const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
+const ItemCard: React.FC<ItemCardProps> = ({ item, onFileClick }) => {
   const router = useRouter()
   const pathname = usePathname()
   const isOnEverythingPage = pathname.startsWith('/everything')
@@ -57,8 +57,6 @@ const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
   const [isScaled, setIsScaled] = useState(false)
   const [scaleFactor, setScaleFactor] = useState(1)
   const [files, setFiles] = useState<IFile[]>([])
-  const [open, setOpen] = useState(false)
-  const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null)
 
   const handleClick = () => {
     router.push(`?edit=${item.id}`)
@@ -90,7 +88,6 @@ const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
             const newFile = new File([blob], `file-${file.id}`, {
               type: file.fileType,
             })
-
             return { ...file, file: newFile }
           }),
         )
@@ -100,15 +97,6 @@ const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
     }
     fetchFiles()
   }, [item.id])
-
-  const handleFileClick = (fileUrl: string) => {
-    setSelectedFileUrl(fileUrl)
-    setOpen(true)
-  }
-
-  const handleClose = () => {
-    setOpen(false)
-  }
 
   return (
     <>
@@ -133,38 +121,28 @@ const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
               },
             }}
           >
-            {files.length > 0
-              ? files.map((file, index) => {
-                  const fileSrc = URL.createObjectURL(file.file)
-                  if (file.fileType.startsWith('image/')) {
-                    return (
-                      <Image
-                        key={index}
-                        src={fileSrc}
-                        alt={`Uploaded ${index}`}
-                        layout="responsive"
-                        width={500}
-                        height={300}
-                        style={{ maxWidth: '100%' }}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleFileClick(fileSrc)
-                        }}
-                      />
-                    )
-                  } else {
-                    return (
-                      <div
-                        key={index}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleFileClick(fileSrc)}
-                      >
-                        <p>File: {file.fileType}</p>
-                      </div>
-                    )
-                  }
-                })
-              : null}
+            {files.map((file, index) => {
+              const fileSrc = URL.createObjectURL(file.file)
+              return (
+                <div
+                  key={index}
+                  onClick={() => onFileClick(fileSrc)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {file.fileType.startsWith('image/') ? (
+                    <Image
+                      src={fileSrc}
+                      alt={`Uploaded ${index}`}
+                      layout="responsive"
+                      width={500}
+                      height={300}
+                    />
+                  ) : (
+                    <p>File: {file.fileType}</p>
+                  )}
+                </div>
+              )
+            })}
             <div
               ref={contentRef}
               className="editor-content"
@@ -187,44 +165,6 @@ const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
           />
         )}
       </ContentCard>
-      <Dialog open={open} onClose={handleClose} maxWidth="md">
-        <DialogContent sx={{ position: 'relative', padding: '16px' }}>
-          <IconButton
-            onClick={handleClose}
-            sx={{ position: 'absolute', top: 8, right: 8, color: 'gray' }}
-          >
-            <CloseIcon />
-          </IconButton>
-          <div
-            style={{
-              width: '50rem',
-              height: '50rem',
-              background: 'linear-gradient(to top, white, transparent)',
-            }}
-          >
-            {selectedFileUrl &&
-              (files
-                .find(
-                  (file) => URL.createObjectURL(file.file) === selectedFileUrl,
-                )
-                ?.fileType.startsWith('image/') ? (
-                <Image
-                  src={selectedFileUrl}
-                  alt="Preview"
-                  layout="responsive"
-                  width={800}
-                  height={500}
-                  style={{ maxWidth: '100%', borderRadius: '6px' }}
-                />
-              ) : (
-                <iframe
-                  src={selectedFileUrl}
-                  style={{ width: '100%', height: '500px' }}
-                />
-              ))}
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }

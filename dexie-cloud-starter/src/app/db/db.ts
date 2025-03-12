@@ -50,6 +50,7 @@ export interface IFile {
   file: Blob
   fileType: string
   realmId?: string
+  objectUrl?: string // New property to store the object URL
 }
 
 export class DexieStarter extends Dexie {
