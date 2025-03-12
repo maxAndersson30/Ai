@@ -133,40 +133,38 @@ const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
               },
             }}
           >
-            {files.length > 0 ? (
-              files.map((file, index) => {
-                const fileSrc = URL.createObjectURL(file.file)
-                if (file.fileType.startsWith('image/')) {
-                  return (
-                    <Image
-                      key={index}
-                      src={fileSrc}
-                      alt={`Uploaded ${index}`}
-                      layout="responsive"
-                      width={500}
-                      height={300}
-                      style={{ maxWidth: '100%' }}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleFileClick(fileSrc)
-                      }}
-                    />
-                  )
-                } else {
-                  return (
-                    <div
-                      key={index}
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => handleFileClick(fileSrc)}
-                    >
-                      <p>File: {file.fileType}</p>
-                    </div>
-                  )
-                }
-              })
-            ) : (
-              <p>No files found.</p>
-            )}
+            {files.length > 0
+              ? files.map((file, index) => {
+                  const fileSrc = URL.createObjectURL(file.file)
+                  if (file.fileType.startsWith('image/')) {
+                    return (
+                      <Image
+                        key={index}
+                        src={fileSrc}
+                        alt={`Uploaded ${index}`}
+                        layout="responsive"
+                        width={500}
+                        height={300}
+                        style={{ maxWidth: '100%' }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleFileClick(fileSrc)
+                        }}
+                      />
+                    )
+                  } else {
+                    return (
+                      <div
+                        key={index}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleFileClick(fileSrc)}
+                      >
+                        <p>File: {file.fileType}</p>
+                      </div>
+                    )
+                  }
+                })
+              : null}
             <div
               ref={contentRef}
               className="editor-content"

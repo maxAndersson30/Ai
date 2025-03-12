@@ -7,7 +7,7 @@ import dayjs from 'dayjs'
 import Tiptap from '@/app/components/tiptap'
 import theme from '@/theme'
 import Button from '@mui/material/Button'
-import { Typography, CardContent } from '@mui/material'
+import { Typography, CardContent, Box } from '@mui/material'
 import { useSearch } from '../(pages)/SearchContext'
 import { ContentCard, ContentWrapper } from './ItemCard'
 import * as Y from 'yjs'
@@ -28,6 +28,7 @@ const NewCard = ({ spaceId }: NewCardProps) => {
 
   const handlePost = async () => {
     let currentCardId = cardId
+
     if (!currentCardId) {
       currentCardId = uuid()
       setCardId(currentCardId)
@@ -41,9 +42,9 @@ const NewCard = ({ spaceId }: NewCardProps) => {
           spaceId,
           fullTextIndex: [],
         })
-        console.log(' New card created:', currentCardId)
+        console.log('New card created:', currentCardId)
       } catch (error) {
-        console.error(' Error creating card:', error)
+        console.error('Error creating card:', error)
         return
       }
     }
@@ -53,15 +54,18 @@ const NewCard = ({ spaceId }: NewCardProps) => {
         await addImageToCard(currentCardId, file)
         console.log('Image saved:', file.name)
       } catch (error) {
-        console.error(' Error saving image:', error)
+        console.error('Error saving image:', error)
       }
     }
 
     const images = await getFilesByCardId(currentCardId)
     console.log('📸 Retrieved Images after upload:', images)
 
+    editorRef.current?.commands.clearContent()
+    setAcceptedFiles([])
     setSearchKeyword('')
     setCanPost(false)
+    setCardId(null)
   }
 
   const handleOnDrop = (acceptedFiles: File[]) => {
@@ -89,6 +93,11 @@ const NewCard = ({ spaceId }: NewCardProps) => {
               setCanPost={setCanPost}
               onPost={handlePost}
               editorRef={editorRef}
+            />
+            <Box
+              sx={{
+                m: 3,
+              }}
             />
 
             <Dropzone onDrop={handleOnDrop}>
